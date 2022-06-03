@@ -7,7 +7,7 @@ float temperature;
 const int trigPin = 9;   // HC-SR04 trigger pin is connected to digital 9
 const int echoPin = 8;   // HC-SR04 echo pin is connected to digital 8
 //====for flame sensor
-const int flamePin = 3;  // flame sensor signal pin is connected to digital 9
+const int flamePin = 3;  // flame sensor signal pin is connected to digital 3
 int Flame = HIGH;        // flame sensor is initialized with a boolean HIGH
 //====for DHT11
 #define dhtPin A0     // Analog Pin A0 of Arduino is connected to DHT11 out pin
@@ -31,8 +31,8 @@ Servo myservo;
 // defines variables
 long duration;
 int distance;
-int distanceFront; //distance_f
-int distanceRev; //distance_r
+int distanceFront;
+int distanceRev; 
 int distance_1;
 int leastDistance = 70; // This is the threshold least distance to initiate stop and turn
 
@@ -63,47 +63,52 @@ void loop() {
   //defines sweep rotation according to least distance detected by ultrasonic
   distanceFront = ping (); //ping sends and receives a pulse by the ultrasonic sensor
   if (distanceFront > leastDistance) {
-    front(); //moves forward
+    front(); //leads to block controlling forward movement
     delay(300); 
   }
+  //if the distance on the front is less than least distance, stop
   else {
-    Break(); 
+    Break(); //leads to block controlling stop sequence
     getDistance(); 
+    //after stop and servo sweep, if distance to the right is greater than least distance, turn right
     if (distanceRight > leastDistance) {
-      right(); 
+      right(); //leads to block controlling right side turn movement
       delay(400); 
       front(); 
     }
+    //after stop and servo sweep, if distance to the left is greater than least distance, turn left
     else if(distanceLeft > leastDistance) {
-      left();
+      left(); //leads to block controlling left side turn movement
       delay (1000); 
       front();
     }
+    //after stop and servo sweep, if distance on both sides are less than least distance, move back
     else {
-      back(); 
+      back(); //leads to block controlling backward movement
       delay(900);
       Break();
     }
   }
   //----------------flame sensor------------------
   Flame = digitalRead(flamePin);
-  if (Flame== LOW)
+  //when light is incident on the flame sensor, it produces a signal low
+  if (Flame== LOW) //since flame was initialized as boolean HIGH, a low signal implies presence of flame
   {
-    Serial.println("Flame detected");
+    Serial.println("Flame detected"); //print flame detected if LOW
     Serial.println(Flame);
     delay (2000);
   }
-  else //REMEMBER TO COMMENT THIS WHEN FINAL RUNNING
+  else //
   {
-    Serial.println("No Flame");
+    Serial.println("No Flame"); //print flame not detected if signal remains HIGH
     Serial.println(Flame);
     delay (2000);
   }
   //--------------------DHT11---------------------
   DHT.read11(dhtPin);
-    temperature = DHT.temperature;
+    temperature = DHT.temperature; //using DHT library function for temperature
     Serial.print("Humidity = ");
-    Serial.print(DHT.humidity);
+    Serial.print(DHT.humidity); //using DHT library function for humidity
     Serial.print("% \t");
     Serial.print("Temperature = ");
     Serial.print(DHT.temperature); 
@@ -126,20 +131,21 @@ void loop() {
 
 // define ping()
 int ping() {
-  //initiating the ultrasonic sensor and sending a test ping
+  //initiating the ultrasonic sensor and sending a test ping for starting the HC-SR04
   digitalWrite(trigPin, LOW); // clears the trigger Pin
   delayMicroseconds(2); //delay by 2 microseconds
   digitalWrite(trigPin, HIGH); // sends a test pulse
   delayMicroseconds(10); // send a pulse for 10 microseconds
   digitalWrite(trigPin, LOW); // turns off again
-  duration = pulseIn(echoPin, HIGH);   // Convert the time into a distance by reading the echo pin for the 10ms pulse sent
-  distance = (duration/2) / 29.1;     // Divide by 29.1 or multiply by 0.0343 for distance in centimetres
+  duration = pulseIn(echoPin, HIGH); // Convert the time into a distance by reading the echo pin for the 10ms pulse sent
+  distance = (duration/2) / 29.1; // Divide by 29.1 or multiply by 0.0343 for distance in centimetres
   Serial.print("Distance of object= ");
   Serial.print(distance);
   Serial.print("cm"); //prints the distance in cm
   Serial.println("");
 }
 
+//code block to display detected distances in serial monitor
 void displayDistance() { 
   // display detected distances in serial monitor
   Serial.print("Right Distance: ");
@@ -153,7 +159,7 @@ void displayDistance() {
   Serial.println("");
 }
 
-//for forward movement
+//code block for forward movement
 void front() {
   Serial.println("Move Forward");
   digitalWrite(leftIn_1, LOW); //make pin 7 LOW
@@ -161,64 +167,68 @@ void front() {
   digitalWrite(rightIn_1, LOW); //make pin 10 LOW
   digitalWrite(rightIn_2, HIGH); //make pin 15 HIGH
 }
-//to reverse
+//code block for reverse movement
 void back() {
   Serial.println("Move Back");
-  digitalWrite(leftIn_1, HIGH);
-  digitalWrite(leftIn_2, LOW); 
-  digitalWrite(rightIn_1, HIGH);
-  digitalWrite(rightIn_2, LOW);
+  digitalWrite(leftIn_1, HIGH); //make pin 7 HIGH
+  digitalWrite(leftIn_2, LOW); //make pin 2 LOW
+  digitalWrite(rightIn_1, HIGH); //make pin 10 HIGH
+  digitalWrite(rightIn_2, LOW); //make pin 15 LOW
 }
-
+//code block for left side turn movement
 void left() {
-  digitalWrite(leftIn_1, HIGH);
-  digitalWrite(leftIn_2, LOW); 
-  digitalWrite(rightIn_1, LOW);
-  digitalWrite(rightIn_2, HIGH);
+  digitalWrite(leftIn_1, HIGH); //make pin 7 HIGH
+  digitalWrite(leftIn_2, LOW); //make pin 2 LOW
+  digitalWrite(rightIn_1, LOW); //make pin 10 LOW
+  digitalWrite(rightIn_2, HIGH); //make pin 15 HIGH
 }
-
+//code block for right side turn movement
 void right() {
-  digitalWrite(leftIn_1, LOW);
-  digitalWrite(leftIn_2, HIGH); 
-  digitalWrite(rightIn_1, HIGH); 
-  digitalWrite(rightIn_2, LOW);
+  digitalWrite(leftIn_1, LOW); //make pin 7 LOW
+  digitalWrite(leftIn_2, HIGH); //make pin 2 HIGH
+  digitalWrite(rightIn_1, HIGH); //make pin 10 HIGH
+  digitalWrite(rightIn_2, LOW); //make pin 15 LOW
 }
-//to stop
+//code block for stop sequence
 void Break() {
-  digitalWrite(leftIn_2, LOW);
-  digitalWrite(leftIn_1, LOW);
-  digitalWrite(rightIn_1, LOW);
-  digitalWrite(rightIn_2, LOW);
+  digitalWrite(leftIn_2, LOW); //make pin 7 LOW
+  digitalWrite(leftIn_1, LOW); //make pin 2 LOW
+  digitalWrite(rightIn_1, LOW); //make pin 10 LOW
+  digitalWrite(rightIn_2, LOW); //make pin 15 LOW
 }
 //respective distance check and servo head turn
 void getDistance() {
-  myservo.write(0); //back to 0 angle for the next distance count
+  myservo.write(0); //back to 0deg from initial 90deg. This initiates right side sweep
   delay(500);
-  int tempRight_l = ping();
-  myservo.write(45);
+  int tempRight_l = ping(); //a temporary ping is received and stored from right sweep
+  myservo.write(45); //sweep 45deg (right sweep)
   delay(500);
-  int tempRight_2 = ping();
+  int tempRight_2 = ping(); //another temporary ping is received and stored from right sweep
+  //if the first ping is less than second, it is set as the distanceRight distance for forward decision at the top
   if(tempRight_l < tempRight_2) {
     distanceRight = tempRight_l;
   }
+  //if the second ping is less than first, it is set as the distanceRight distance for forward decision at the top
   else {
     distanceRight = tempRight_2;
   }
-  myservo.write(90);
+  myservo.write(90); //rotate back to central 90deg position
   delay(500);
+  distanceFront = ping(); //send and read ping for forward distance
   
-  distanceFront = ping();
-  myservo.write(135);
+  myservo.write(135); //sweep 135deg (left sweep)
   delay(500);
-  int tempLeft_1 = ping();
-  myservo.write(180);
+  int tempLeft_1 = ping(); //a temporary ping is received and stored from left sweep
+  myservo.write(180); //sweep 180deg to complete the left sweep
   delay(500);
-  int tempLeft_2 = ping();
+  int tempLeft_2 = ping(); //another temporary ping is received and stored from left sweep
+  //if the first ping is less than second, it is set as the distanceLeft distance for forward decision at the top
   if (tempLeft_1 < tempLeft_2) {
     distanceLeft = tempLeft_1;
   }
+  //if the second ping is less than first, it is set as the distanceLeft distance for forward decision at the top
   else{
     distanceLeft = tempLeft_2;
   }
-  myservo.write(90);
+  myservo.write(90); //servo rotation back to original 90deg position
 }
