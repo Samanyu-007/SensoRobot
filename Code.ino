@@ -162,8 +162,8 @@ void displayDistance() {
 //code block for forward movement
 void front() {
   Serial.println("Move Forward");
-  digitalWrite(leftIn_1, LOW); //make pin 7 LOW
-  digitalWrite(leftIn_2, HIGH); //make pin 2 HIGH
+  digitalWrite(leftIn_1, LOW); //make pin 7 of driver LOW
+  digitalWrite(leftIn_2, HIGH); //make pin 2 of driver HIGH
   digitalWrite(rightIn_1, LOW); //make pin 10 LOW
   digitalWrite(rightIn_2, HIGH); //make pin 15 HIGH
 }
